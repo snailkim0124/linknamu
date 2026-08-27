@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import ProfileHeader from "@/components/ProfileHeader";
 import LinkCard from "@/components/LinkCard";
 
@@ -9,12 +12,42 @@ const profile = {
 };
 
 const links = [
-  { label: "깃허브", href: "https://github.com/snailkim0124", icon: "🐙" },
-  { label: "블로그", href: "https://naver.com", icon: "📝" },
-  { label: "이메일", href: "mailto:kimmingim@naver.com", icon: "📧" },
-];
+  { id: "github", label: "깃허브", href: "https://github.com/snailkim0124", icon: "🐙" },
+  { id: "blog", label: "블로그", href: "https://naver.com", icon: "📝" },
+  { id: "email", label: "이메일", href: "mailto:kimmingim@naver.com", icon: "📧" },
+] as const;
 
 export default function Home() {
+  const [clickCounts, setClickCounts] = useState<Record<string, number>>(() =>
+    Object.fromEntries(links.map((link) => [link.id, 0]))
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/clicks")
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data: Record<string, number>) => {
+        if (!cancelled) setClickCounts((prev) => ({ ...prev, ...data }));
+      })
+      .catch((error) => console.error("클릭 수를 불러오지 못했습니다.", error));
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLinkClick = (id: string) => {
+    // 즉시 화면에 반영(낙관적 업데이트)
+    setClickCounts((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+
+    fetch("/api/clicks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    }).catch((error) => console.error("클릭 수 저장에 실패했습니다.", error));
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16 sm:px-10">
       <div className="flex w-full max-w-sm flex-col items-center gap-10">
@@ -27,10 +60,12 @@ export default function Home() {
         <div className="flex w-full flex-col gap-4">
           {links.map((link) => (
             <LinkCard
-              key={link.label}
+              key={link.id}
               label={link.label}
               href={link.href}
               icon={link.icon}
+              clickCount={clickCounts[link.id] ?? 0}
+              onClick={() => handleLinkClick(link.id)}
             />
           ))}
         </div>
