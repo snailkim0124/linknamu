@@ -12,10 +12,14 @@ export default function LinkCard({ label, href, icon }: LinkCardProps) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex w-full items-center gap-3 rounded-xl border border-black/10 bg-white px-4 py-3.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-neutral-50 dark:border-white/10 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+      className="glass-card group flex w-full items-center gap-3 rounded-2xl px-5 py-4 text-sm font-medium text-foreground shadow-card transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-card-hover"
     >
-      {icon ? <span className="h-5 w-5 shrink-0">{icon}</span> : null}
-      <span className="mx-auto">{label}</span>
+      {icon ? (
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center text-lg leading-none">
+          {icon}
+        </span>
+      ) : null}
+      <span className="mx-auto tracking-tight">{label}</span>
     </a>
   );
 }
